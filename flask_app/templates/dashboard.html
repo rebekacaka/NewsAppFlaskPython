@@ -1,0 +1,220 @@
+{%extends "base.html"%}
+{% block content %}
+<div class="m-auto p-3" style="max-width: 540px;">
+    <div class="input-group bg-light">
+        <div class="form-outline border border-2 border-primary py-2">
+            <input id="searchbar" type="text" id="form1" class="form-control" />
+            <label class="form-label my-2" for="form1">Search</label>
+        </div>
+        <button type="button" onclick="getNews('search')" class="btn btn-primary">
+            <i class="fas fa-search"></i>
+        </button>
+    </div>
+</div>
+<div id="top-bar" class="scrollbar scrollmenu m-auto py-2 my-3 justify-content-center" style="max-width: 540px;">
+    {%for keyword in keywords%}
+    <button onclick="getNews(this)" class="btn btn-outline-primary mx-1 rounded-pill bg-light"
+        type="button">{{keyword}}</button>
+    {%endfor%}
+</div>
+<div id="results">
+    {%for article in articles%}
+    <div class="d-flex justify-content-center">
+        <div class="card mb-3 mx-3 my-3 shadow-lg" style="max-width: 540px;">
+            <div class="row no-gutters">
+                <div class="col-md-5 d-flex align-items-center justify-content-center">
+                    <img src="{{article['urlToImage']}}" class="card-img" alt="Article's image">
+                </div>
+                <div class="col-md-7 p-0">
+                    <div class="card-body p-3">
+                        <h5 class="card-title">{{article['title']}}</h5>
+                        <p class="card-text">{{article['description']}}</p>
+                        <p class="card-text"><small class="text-muted">{{article['publishedAt']}}</small></p>
+                        <div class="d-flex justify-content-evenly w-100">
+                            <a href="{{article['url']}}" target="_blank" class="btn btn-primary">Read The Full Story</a>
+                            {%if article['url'] in savedArticles%}
+                            <form action="/unsaveArticle" method="post">
+                                <input type="hidden" name="title" value="{{article['title']}}">
+                                <input type="hidden" name="url" value="{{article['url']}}">
+                                <input type="submit" class="btn btn-success" value="Unsave">
+                            </form>
+                            {%else%}
+                            <form action="/saveArticle" method="post">
+                                <input type="hidden" name="title" value="{{article['title']}}">
+                                <input type="hidden" name="url" value="{{article['url']}}">
+                                <input type="submit" class="btn btn-outline-success" value="Save">
+                            </form>
+                            {%endif%}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+<div id="flashes" class="hide">
+    {% with errors = get_flashed_messages(category_filter=["articlesaved"]) %}
+    {% if errors %}
+    {% for msg in errors %}
+    {{ msg }}
+    {% endfor %}
+    {% endif %}
+    {% endwith %}
+    {% with resent = get_flashed_messages(category_filter=["articleunsaved"]) %}
+    {% if resent %}
+    {% for msg in resent %}
+    {{ msg }}
+    {% endfor %}
+    {% endif %}
+    {% endwith %}
+</div>
+<script>
+    function flashToastNotification(message) {
+        console.log(message);
+        // Create a toast notification element.
+        const toastNotificationElement = document.createElement('div');
+        toastNotificationElement.classList.add('toast-notification');
+        toastNotificationElement.classList.add('text-light')
+        toastNotificationElement.classList.add('text-center')
+
+        // Set the toast notification message.
+        toastNotificationElement.textContent = message;
+
+        // Add the toast notification element to the document body.
+        document.body.appendChild(toastNotificationElement);
+
+        // Fade in the toast notification element.
+        toastNotificationElement.classList.add('fade-in');
+
+        // Remove the toast notification element after 3 seconds.
+        setTimeout(() => {
+            toastNotificationElement.classList.remove('fade-in');
+            toastNotificationElement.classList.add('fade-out');
+
+            setTimeout(() => {
+                document.body.removeChild(toastNotificationElement);
+            }, 500);
+        }, 3000);
+    }
+    if (document.getElementById('flashes').innerText != '') {
+        flashToastNotification(document.getElementById('flashes').innerText)
+    }
+    var input = document.getElementById('searchbar')
+    input.addEventListener("keydown",function(e){
+        if (e.keyCode === 13) {
+            getNews('search')
+        }
+    })
+    async function getNews(e) {
+        const buttons = document.querySelectorAll(".btn.btn-outline-primary.mx-1.rounded-pill");
+        if (e == 'search') {
+            query = document.getElementById('searchbar').value;
+            document.getElementById('searchbar').value=''
+        }
+        else {
+
+            const buttons = document.querySelectorAll(".btn.btn-outline-primary.mx-1.rounded-pill");
+
+            buttons.forEach(button => {
+                button.addEventListener('click', () => {
+                    // Enable the clicked button
+                    button.classList.add('active');
+                    button.classList.remove('bg-light');
+
+                    // Disable all other buttons
+                    buttons.forEach(otherButton => {
+                        if (otherButton !== button) {
+                            otherButton.classList.remove('active');
+                            otherButton.classList.add('bg-light');
+                        }
+                    });
+                });
+            });
+            query = e.innerText
+        }
+        
+        var url = "https://newsapi.org/v2/everything?q="+query+"&language=en&apiKey=bf1cb8dc1df74505a310b9dc5301942e";
+        const response = await fetch(url);
+        console.log(response);
+        // Check the response status code.
+        if (response.status !== 200) {
+            throw new Error("Failed to query News API: " + response.status);
+        }
+
+        // Parse the JSON response.
+        const data = await response.json();
+
+        // Get the articles.
+        const articles = data.articles;
+        const savedArt = {{ savedArticles | d([]) | tojson | safe}}
+
+    // Display the articles on the page.
+    const resultsContainer = document.querySelector("#results");
+    resultsContainer.innerHTML = "";
+    // Display the articles once the response has been received.
+    for (const article of articles) {
+        const articleElement = document.createElement("article");
+        if (article['title'] != '[Removed]' && article['urlToImage'] != null) {
+
+            if (savedArt.includes(article['url'])) {
+                articleElement.innerHTML =
+                    `<div class="d-flex justify-content-center">
+                        <div class="card mb-3 mx-3 my-3 shadow-lg" style="max-width: 540px;">
+                            <div class="row no-gutters">
+                                <div class="col-md-5 d-flex align-items-center justify-content-center">
+                                    <img src="${article['urlToImage']}" class="card-img" alt="Article's image">
+                                </div>
+                                <div class="col-md-7 p-0">
+                                    <div class="card-body p-3">
+                                        <h5 class="card-title">${article['title']}</h5>
+                                        <p class="card-text">${article['description']}</p>
+                                        <p class="card-text"><small class="text-muted">${article['publishedAt']}</small></p>
+                                        <div class="d-flex justify-content-evenly w-100">
+                                            <a href="${article['url']}" target="_blank" class="btn btn-primary">Read The Full Story</a>
+                                            <form action="/unsaveArticle" method="post">
+                                                <input type="hidden" name="title" value="${article['title']}">
+                                                <input type="hidden" name="url" value="${article['url']}">
+                                                <input type="submit" class="btn btn-success" value="Unsave">
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>`;
+            }
+            else {
+                articleElement.innerHTML = `
+            <div class="d-flex justify-content-center">
+                <div class="card mb-3 mx-3 my-3 shadow-lg" style="max-width: 540px;">
+                    <div class="row no-gutters">
+                        <div class="col-md-5 d-flex align-items-center justify-content-center   ">
+                            <img src="${article['urlToImage']}" class="card-img" alt="Article's image">
+                        </div>
+                        <div class="col-md-7 p-0">
+                            <div class="card-body p-3">
+                                <h5 class="card-title">${article['title']}</h5>
+                                <p class="card-text">${article['description']}</p>
+                                <p class="card-text"><small class="text-muted">${article['publishedAt']}</small></p>
+                                <div class="d-flex justify-content-evenly w-100">
+                                    <a href="${article['url']}" target="_blank" class="btn btn-primary">Read The Full Story</a>
+                                    <form action="/saveArticle" method="post">
+                                        <input type="hidden" name="title" value="${article['title']}">
+                                        <input type="hidden" name="url" value="${article['url']}">
+                                        <input type="submit" class="btn btn-outline-success" value="Save">
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>`;
+            }
+
+            resultsContainer.appendChild(articleElement);
+        }
+    }
+    }
+</script>
+{% endblock %}

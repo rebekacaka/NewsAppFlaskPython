@@ -1,0 +1,166 @@
+{%extends "base.html"%}
+{% block content %}
+<div class="container h-100 my-3">
+    <div class="row d-flex justify-content-center align-items-center h-100">
+        <div class="col-lg-12 col-xl-11">
+            <div class="card text-black shadow-lg" style="border-radius: 25px;">
+                <div class="card-body p-md-5">
+                    <div class="row justify-content-center">
+                        <div class="my-1 col-md-10 col-lg-6 col-xl-5 order-1 order-lg-1 pt-3">
+                            <div class="mx-1 mx-md-4 text-center">
+                                <h1 class="text-primary">One Last Thing ...</h1>
+                                <h3 class="text-start">
+                                    Before you get started we need to now what your interests are, so we can serve you
+                                    the headlines you'll want to hear about
+                                </h3>
+                                <div class="m-auto p-3" style="max-width: 540px;">
+                                    <div class="input-group">
+                                        <div class="form-outline border border-2 border-primary py-2">
+                                            <input id="searchbar" type="text" id="form1" class="form-control" />
+                                            <label class="form-label my-2" for="form1">Search</label>
+                                        </div>
+                                        <button type="button" onclick="addInterest()" class="btn btn-primary">
+                                            <i class="fas fa-search"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="my-1 col-md-10 col-lg-6 col-xl-7 p-0 order-2 order-lg-2">
+                            <h3>Choose at least 3 topics your interested in</h3>
+                            <div id="alltopic" class="row row-cols-3 scrollbar overflow-auto mx-1"
+                                style="max-height: 300px;">
+                                <button class="my-2 rounded-pill btn-outline-primary"
+                                    onclick=toggleActiveClassOnButtonClick(this)>
+                                    Google
+                                </button>
+                                <button class="my-2 rounded-pill btn-outline-primary"
+                                    onclick=toggleActiveClassOnButtonClick(this)>
+                                    Tesla
+                                </button>
+                                <button class="my-2 rounded-pill btn-outline-primary"
+                                    onclick=toggleActiveClassOnButtonClick(this)>
+                                    Apple
+                                </button>
+                                <button class="my-2 rounded-pill btn-outline-primary"
+                                    onclick=toggleActiveClassOnButtonClick(this)>
+                                    Microsoft
+                                </button>
+                                <button class="my-2 rounded-pill btn-outline-primary"
+                                    onclick=toggleActiveClassOnButtonClick(this)>
+                                    Yotube
+                                </button>
+                                <button class="my-2 rounded-pill btn-outline-primary"
+                                    onclick=toggleActiveClassOnButtonClick(this)>
+                                    Amazon
+                                </button>
+                                <button class="my-2 rounded-pill btn-outline-primary"
+                                    onclick=toggleActiveClassOnButtonClick(this)>
+                                    Linux
+                                </button>
+                                <button class="my-2 rounded-pill btn-outline-primary"
+                                    onclick=toggleActiveClassOnButtonClick(this)>
+                                    Gaming
+                                </button>
+                                <button class="my-2 rounded-pill btn-outline-primary"
+                                    onclick=toggleActiveClassOnButtonClick(this)>
+                                    Football
+                                </button>
+                                <button class="my-2 rounded-pill btn-outline-primary"
+                                    onclick=toggleActiveClassOnButtonClick(this)>
+                                    Euro2024
+                                </button>
+                                <button class="my-2 rounded-pill btn-outline-primary"
+                                    onclick=toggleActiveClassOnButtonClick(this)>
+                                    iOS
+                                </button>
+                                <button class="my-2 rounded-pill btn-outline-primary"
+                                    onclick=toggleActiveClassOnButtonClick(this)>
+                                    Android
+                                </button>
+                            </div>
+                            <button onclick="setInterests()" class="btn btn-success my-2 float-end">Continue</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    function addInterest() {
+        inputElement = document.querySelector('#searchbar')
+        divElement = document.getElementById('alltopic')
+        const word = inputElement.value;
+        const newElement = document.createElement('button');
+        newElement.classList.add('rounded-pill')
+        newElement.classList.add('btn-outline-primary')
+        newElement.classList.add('active')
+        newElement.classList.add('my-2')
+        newElement.setAttribute = ("onclick", "toggleActiveClassOnButtonClick(this)")
+        newElement.textContent = word;
+        divElement.appendChild(newElement);
+        inputElement.value = ""
+        divElement.scrollTop = divElement.scrollHeight;
+    }
+    function toggleActiveClassOnButtonClick(buttonElement) {
+        if (buttonElement.classList.contains('active')) {
+            buttonElement.classList.remove('active')
+        }
+        else {
+            buttonElement.classList.add('active')
+        }
+    }
+    function setInterests() {
+        const allSelected = document.querySelectorAll('#alltopic .active')
+        if (allSelected.length < 3) {
+            flashToastNotification('You need to choose at least 3 to continue!')
+            return
+        }
+        else {
+            console.log(allSelected);
+            var all = []
+            for (const Node of allSelected){
+                all.push(Node.innerText)
+            }
+            var form = new FormData()
+            form.append('all', all)
+            fetch('/setInterests', {
+                method: 'POST',
+                body: form
+            })
+                .then(response => response.json())
+                .then(data => {
+                    window.location.href = data.path
+                })
+        }
+    }
+    function flashToastNotification(message) {
+        console.log(message);
+        // Create a toast notification element.
+        const toastNotificationElement = document.createElement('div');
+        toastNotificationElement.classList.add('toast-notification');
+        toastNotificationElement.classList.add('text-light')
+        toastNotificationElement.classList.add('text-center')
+
+        // Set the toast notification message.
+        toastNotificationElement.textContent = message;
+
+        // Add the toast notification element to the document body.
+        document.body.appendChild(toastNotificationElement);
+
+        // Fade in the toast notification element.
+        toastNotificationElement.classList.add('fade-in');
+
+        // Remove the toast notification element after 3 seconds.
+        setTimeout(() => {
+            toastNotificationElement.classList.remove('fade-in');
+            toastNotificationElement.classList.add('fade-out');
+
+            setTimeout(() => {
+                document.body.removeChild(toastNotificationElement);
+            }, 500);
+        }, 3000);
+    }
+</script>
+{% endblock %}

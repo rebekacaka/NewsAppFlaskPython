@@ -1,0 +1,125 @@
+.profile-pic {
+    height: 3em;
+}
+
+.toast-notification {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 300px;
+    padding: 10px;
+    border-radius: 4px;
+    background-color: black;
+    color: #3b71ca;
+    opacity: 0;
+    transition: opacity 0.5s ease-in-out;
+    box-shadow: 10px 10px 50px grey;
+    z-index: 100;
+}
+
+.toast-notification.fade-in {
+    opacity: 1;
+}
+
+.toast-notification.fade-out {
+    opacity: 0;
+}
+
+.toast-notification.fade-in {
+    animation: fade-in 0.5s ease-in-out;
+}
+
+.toast-notification.fade-out {
+    animation: fade-out 0.5s ease-in-out;
+}
+
+@keyframes fade-in {
+    0% {
+        opacity: 0;
+    }
+
+    100% {
+        opacity: 1;
+    }
+}
+
+@keyframes fade-out {
+    0% {
+        opacity: 1;
+    }
+
+    100% {
+        opacity: 0;
+    }
+}
+
+@media (min-width: 992px) {
+    .navbar-nav {
+        justify-content: space-between;
+    }
+}
+
+div.scrollmenu {
+    overflow: auto;
+    white-space: nowrap;
+}
+
+div.scrollmenu button {
+    display: inline-block;
+    text-align: center;
+    padding: 10px;
+    text-decoration: none;
+}
+
+div.scrollmenu button:hover {
+    background-color: #3b71ca;
+    color: white;
+}
+
+.popupcard {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 99;
+    max-width: 480px;
+    width: 80%;
+}
+
+div#coverdiv {
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    background-color: #000000;
+    top: 0px;
+    left: 0px;
+    opacity: 0.7;
+    filter: alpha(opacity=70);
+    z-index: 98;
+
+}
+
+.scrollbar::-webkit-scrollbar-track {
+    -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
+    background-color: #F5F5F5;
+    border-radius: 10px;
+}
+
+.scrollbar::-webkit-scrollbar {
+    width: 5px;
+    background-color: #F5F5F5;
+}
+
+.scrollbar::-webkit-scrollbar-thumb {
+    border-radius: 10px;
+    background: rgb(59, 113, 202);
+    background: linear-gradient(90deg, rgba(59, 113, 202, 1) 0%, rgba(0, 212, 255, 1) 100%);
+}
+
+/* footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+} */

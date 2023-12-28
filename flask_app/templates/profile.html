@@ -1,0 +1,383 @@
+{%extends "base.html"%}
+{% block content %}
+<div id="coverdiv" class="d-none">
+</div>
+<div class="card my-3 shadow-lg m-auto" style="max-width: 540px;">
+    <div class="row g-0">
+        <div class="col-md-4 d-flex flex-column align-items-center">
+            <img src="../static/UPLOADED_FOLDER/{{loggedUser['profile_pic']}}" class="img-fluid rounded-1" alt="...">
+            <button onclick="popupwindows('show-edit-picture','editpicture','cancel-edit-picture')"
+                id="show-edit-picture" class="btn btn-primary my-2">Edit</button>
+        </div>
+        <div class="col-md-8">
+            <div class="card-body">
+                <h5 class="card-title">{{loggedUser['first_name']}} {{loggedUser['last_name']}}</h5>
+                <p class="card-text">{{loggedUser['email']}}</p>
+                <div>
+                    <button onclick="popupwindows('show-edit-profile','editprofile','cancel-edit-profile')"
+                        id="show-edit-profile" class="btn btn-outline-primary">Edit Profile</button>
+                    <button onclick="popupwindows('show-change-pass','changepass','cancel-change-pass')"
+                        id="show-change-pass" class="btn btn-outline-warning">Change Password</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="card text-center m-auto my-2" style="max-width: 540px;">
+    <div class="card-header">
+        <h3>
+            Your Interests
+        </h3>
+    </div>
+    <form class="d-flex w-75 m-auto my-3" action="/addInterest" method="post">
+        <div class="form-outline border border-2 border-primary py-2 rounded-pill">
+            <input type="text" name="key_word" class="form-control rounded-pill" />
+        </div>
+        <button type="submit" class="btn btn-primary rounded-pill mx-2">
+            Add
+        </button>
+    </form>
+    <div class="card-body row row-cols-3 g-2">
+        {% for topic in topics %}
+        <button class="rounded-pill btn-outline-primary" value="{{topic.id}}" data-bs-toggle="button">
+            {{topic.key_word}}
+        </button>
+        {% endfor %}
+    </div>
+    <div class="card-footer text-body-secondary">
+        <button type="button" class="btn btn-danger" onclick="remove()">Delete</button>
+    </div>
+</div>
+<div class="card m-auto shadow-6-strong my-3" style="max-width: 540px;">
+    <div class="card-header text-center">
+        <h3>
+            Your Saved Articles
+        </h3>
+    </div>
+    <ul class="list-group list-group-flush">
+        {% for article in saved %}
+        <li class="list-group-item text-center">
+            <p>{{article.title}}</p>
+        </li>
+        <li class="list-group-item d-flex justify-content-between">
+            <a target="_blank" class="btn btn-outline-primary" href="{{article.url}}">Read Full Article</a>
+            <button
+                onclick="popupwindows('show-edit-article','editarticle','cancel-edit-article','{{article.id}}','{{article.title}}')"
+                id="show-edit-article" class="btn btn-outline-warning" type="button">Edit</button>
+            <form action="/unsaveArticle" method="post">
+                <input type="hidden" name="id" value="{{article.id}}">
+                <button class="btn btn-outline-danger" type="submit">Delete</button>
+            </form>
+        </li>
+        {% endfor %}
+    </ul>
+</div>
+<!-- POPUPS -->
+<div id="editpicture" class="card text-center d-none popupcard">
+    <div class="card-header">
+        <h3>
+            Edit Profile Picture
+        </h3>
+    </div>
+    <form action="/editprofilepic" method="post" enctype="multipart/form-data">
+        <div class="card-body">
+            <input type="file" name="image" class="btn btn-outline-dark">
+            <label for="image">Upload your new profile picture here</label>
+        </div>
+        <div class="card-footer text-body-secondary">
+            <button type="reset" id="cancel-edit-picture" class="btn btn-outline-danger">Cancel</button>
+            <button class="btn btn-outline-success" type="submit">Edit</button>
+        </div>
+    </form>
+</div>
+<div id="editprofile" class="card text-center d-none popupcard">
+    <div class="card-header">
+        <h3>
+            Edit Profile
+        </h3>
+    </div>
+    <form action="/editProfile" method="post" novalidate>
+        <div class="card-body">
+            <div class="d-flex flex-row align-items-center mb-4 border border-3 border-primary p-2 rounded-3">
+                <i class="fas fa-user fa-lg me-3 fa-fw"></i>
+                <div class="form-outline flex-fill mb-0 form-floating">
+                    <input type="text" class="form-control" name="first_name" value="{{loggedUser['first_name']}}"
+                        validation required />
+                    <label class="form-label" for="first_name">First Name</label>
+                </div>
+            </div>
+
+            <div class="d-flex flex-row align-items-center mb-4 border border-3 border-primary p-2 rounded-3">
+                <i class="fas fa-user fa-lg me-3 fa-fw"></i>
+                <div class="form-outline flex-fill mb-0 form-floating">
+                    <input type="text" class="form-control" name="last_name" validation required
+                        value="{{loggedUser['last_name']}}" />
+                    <label class="form-label" for="last_name">Last Name</label>
+                </div>
+            </div>
+
+            <div class="d-flex flex-row align-items-center mb-4 border border-3 border-primary p-2 rounded-3">
+                <i class="fas fa-envelope fa-lg me-3 fa-fw"></i>
+                <div class="form-outline flex-fill mb-0 form-floating">
+                    <input type="email" class="form-control" name="email" validation required
+                        value="{{loggedUser['email']}}" />
+                    <label class="form-label" for="email">Email</label>
+                </div>
+            </div>
+        </div>
+        <div class="card-footer text-body-secondary">
+            <button type="reset" id="cancel-edit-profile" class="btn btn-outline-danger">Cancel</button>
+            <button class="btn btn-outline-success" type="submit">Edit</button>
+        </div>
+    </form>
+</div>
+<div id="changepass" class="card text-center d-none popupcard">
+    <div class="card-header">
+        <h3>
+            Change Password
+        </h3>
+    </div>
+    <form action="/editPassword" method="post" novalidate>
+        <div class="card-body">
+            <div class="d-flex flex-row align-items-center mb-4 border border-3 border-primary p-2 rounded-3">
+                <i class="fas fa-user fa-lg me-3 fa-fw"></i>
+                <div class="form-outline flex-fill mb-0 form-floating">
+                    <input type="password" class="form-control" name="oldpsw" validation required />
+                    <label class="form-label" for="oldpsw">Old Password</label>
+                </div>
+            </div>
+
+            <div class="d-flex flex-row align-items-center mb-4 border border-3 border-primary p-2 rounded-3">
+                <i class="fas fa-user fa-lg me-3 fa-fw"></i>
+                <div class="form-outline flex-fill mb-0 form-floating">
+                    <input type="password" class="form-control" name="newpsw" validation required />
+                    <label class="form-label" for="newpsw">New Password</label>
+                </div>
+            </div>
+
+            <div class="d-flex flex-row align-items-center mb-4 border border-3 border-primary p-2 rounded-3">
+                <i class="fas fa-envelope fa-lg me-3 fa-fw"></i>
+                <div class="form-outline flex-fill mb-0 form-floating">
+                    <input type="password" class="form-control" name="confirmnewpsw" validation required />
+                    <label class="form-label" for="confirmnewpsw">Confirm New Password</label>
+                </div>
+            </div>
+        </div>
+        <div class="card-footer text-body-secondary">
+            <div class="card-footer text-body-secondary">
+                <button type="reset" id="cancel-change-pass" class="btn btn-outline-danger">Cancel</button>
+                <button class="btn btn-outline-success" type="submit">Change</button>
+            </div>
+        </div>
+    </form>
+</div>
+<div id="editarticle" class="card text-center d-none popupcard">
+    <div class="card-header">
+        <h3>
+            Edit Article Name
+        </h3>
+    </div>
+    <form action="/editArticle" method="post" novalidate>
+        <div class="card-body">
+            <div class="d-flex flex-row align-items-center mb-4 border border-3 border-primary p-2 rounded-3">
+                <i class="fas fa-user fa-lg me-3 fa-fw"></i>
+                <div class="form-outline flex-fill mb-0 form-floating">
+                    <input id="title" type="text" class="form-control" name="title" validation />
+                    <label class="form-label" for="title">Title</label>
+                </div>
+            </div>
+            <input id="hiddenid" type="hidden" name="id" value="">
+        </div>
+        <div class="card-footer text-body-secondary">
+            <button id="cancel-edit-article" class="btn btn-outline-danger" type="reset">Cancel</button>
+            <button class="btn btn-outline-success" type="submit">Edit</button>
+        </div>
+    </form>
+</div>
+<div id="flashes" class="d-none">{% with errors = get_flashed_messages(category_filter=["Image"]) %}{% if errors %}{%
+    for msg in errors %}{{ msg }}{% endfor %}{% endif %}{% endwith %}{% with resent =
+    get_flashed_messages(category_filter=["success"]) %}{% if resent %}{% for msg in resent %}{{ msg }}{% endfor %}{%
+    endif %}{% endwith %}</div>
+<script>
+    // JavaScript
+    function popupwindows(popupbtnid, popupcardid, popupcancelid, id, title) {
+        if (id) {
+            document.querySelector('#hiddenid').value = id
+            document.querySelector('#title').value = title
+        }
+        const modalButton = document.getElementById(popupbtnid);
+        const modal = document.getElementById(popupcardid);
+        const closeModalButton = document.getElementById(popupcancelid);
+        const coverDiv = document.getElementById("coverdiv")
+        modal.classList.remove('d-none');
+        coverDiv.classList.remove('d-none');
+        modal.addEventListener('click', (event) => {
+            event.stopPropagation();
+        });
+
+        closeModalButton.addEventListener('click', () => {
+            modal.classList.add('d-none');
+            coverDiv.classList.add('d-none');
+        });
+    }
+    const buttons = document.querySelectorAll('.rounded-pill.btn-outline-primary');
+
+    for (const button of buttons) {
+        button.addEventListener('click', () => {
+            buttons.forEach(button => button.classList.remove('active'));
+            button.classList.add('active');
+        });
+    }
+    function remove() {
+        const topic = document.querySelector('.rounded-pill.btn-outline-primary.active')
+        console.log(topic);
+        if (topic != null) {
+            const formData = new FormData()
+            formData.append('id', topic.value)
+            fetch('/deleteInterest', {
+                method: 'POST',
+                body: formData
+            })
+                .then(response => response.json())
+                .then(data => {
+                    window.location.href = data.path
+                    window.location.reload()
+                    return;
+                })
+        }
+        else {
+            flashToastNotification('Select a interest before pressing delete!')
+            return;
+        }
+    }
+    function flashToastNotification(message) {
+        console.log(flashToastNotification.caller);
+        // Create a toast notification element.
+        const toastNotificationElement = document.createElement('div');
+        toastNotificationElement.classList.add('toast-notification');
+        toastNotificationElement.classList.add('text-danger')
+
+        // Set the toast notification message.
+        toastNotificationElement.textContent = message;
+
+        // Add the toast notification element to the document body.
+        document.body.appendChild(toastNotificationElement);
+
+        // Fade in the toast notification element.
+        toastNotificationElement.classList.add('fade-in');
+
+        // Remove the toast notification element after 3 seconds.
+        setTimeout(() => {
+            toastNotificationElement.classList.remove('fade-in');
+            toastNotificationElement.classList.add('fade-out');
+
+            setTimeout(() => {
+                document.body.removeChild(toastNotificationElement);
+            }, 500);
+        }, 3000);
+    }
+
+    if (document.getElementById('flashes').innerText != '') {
+        console.log("toast called");
+        flashToastNotification(document.getElementById('flashes').innerText)
+
+    }
+    const formProf = document.querySelector('#editprofile form');
+
+    // Add an event listener to the form submit event.
+    formProf.addEventListener('submit', function (event) {
+        // Prevent the default form submission.
+        event.preventDefault();
+
+        // Get the form data.
+        const formData = new FormData(formProf);
+
+        // Send the form data to the server using a POST request.
+        fetch('/editProfile', {
+            method: 'POST',
+            body: formData
+        })
+            .then(response => response.json())
+            .then(data => {
+                // If the form is valid, redirect the user to the success page.
+                if (data.valid) {
+                    window.location.href = data.path;
+                } else {
+                    // If the form is invalid, display the validation errors.
+                    for (const field in data.errors) {
+                        const inputField = document.querySelector(`#editprofile form input[name="${field}"]`);
+                        const feedbackElement = inputField.nextElementSibling;
+
+                        feedbackElement.textContent = data.errors[field];
+                        inputField.classList.add('is-invalid');
+                    }
+                }
+            });
+    });
+
+    const formPass = document.querySelector('#changepass form');
+
+    // Add an event listener to the form submit event.
+    formPass.addEventListener('submit', function (event) {
+        // Prevent the default form submission.
+        event.preventDefault();
+
+        // Get the form data.
+        const formData = new FormData(formPass);
+
+        // Send the form data to the server using a POST request.
+        fetch('/editPassword', {
+            method: 'POST',
+            body: formData
+        })
+            .then(response => response.json())
+            .then(data => {
+                // If the form is valid, redirect the user to the success page.
+                if (data.valid) {
+                    window.location.href = data.path;
+                } else {
+                    // If the form is invalid, display the validation errors.
+                    for (const field in data.errors) {
+                        const inputField = document.querySelector(`#changepass form input[name="${field}"]`);
+                        const feedbackElement = inputField.nextElementSibling;
+
+                        feedbackElement.textContent = data.errors[field];
+                        inputField.classList.add('is-invalid');
+                    }
+                }
+            });
+    });
+    const formArt = document.querySelector('#editarticle form');
+
+    // Add an event listener to the form submit event.
+    formArt.addEventListener('submit', function (event) {
+        // Prevent the default form submission.
+        event.preventDefault();
+
+        // Get the form data.
+        const formData = new FormData(formArt);
+
+        // Send the form data to the server using a POST request.
+        fetch('/editArticle', {
+            method: 'POST',
+            body: formData
+        })
+            .then(response => response.json())
+            .then(data => {
+                // If the form is valid, redirect the user to the success page.
+                if (data.valid) {
+                    window.location.href = data.path;
+                } else {
+                    // If the form is invalid, display the validation errors.
+                    for (const field in data.errors) {
+                        const inputField = document.querySelector(`#editarticle form input[name="${field}"]`);
+                        const feedbackElement = inputField.nextElementSibling;
+
+                        feedbackElement.textContent = data.errors[field];
+                        inputField.classList.add('is-invalid');
+                    }
+                }
+            });
+    });
+</script>
+{% endblock %}
